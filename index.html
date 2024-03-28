@@ -1,1 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balletje naar finish</title>
+<style>
+    #game-container {
+        width: 400px;
+        height: 400px;
+        position: relative;
+        border: 1px solid black;
+    }
+    #balletje {
+        width: 20px;
+        height: 20px;
+        background-color: red;
+        border-radius: 50%;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    #finish {
+        width: 30px;
+        height: 30px;
+        background-color: green;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+    }
+</style>
+</head>
+<body>
+<div id="game-container">
+    <div id="balletje"></div>
+    <div id="finish"></div>
+</div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const balletje = document.getElementById('balletje');
+        const finish = document.getElementById('finish');
+        const gameContainer = document.getElementById('game-container');
+
+        let x = 0;
+        let y = 0;
+
+        function updatePosition() {
+            balletje.style.transform = `translate(${x}px, ${y}px)`;
+        }
+
+        function checkCollision() {
+            const rectBalletje = balletje.getBoundingClientRect();
+            const rectFinish = finish.getBoundingClientRect();
+
+            if (
+                rectBalletje.left < rectFinish.right &&
+                rectBalletje.right > rectFinish.left &&
+                rectBalletje.top < rectFinish.bottom &&
+                rectBalletje.bottom > rectFinish.top
+            ) {
+                alert('Gefeliciteerd! Je hebt de finish bereikt.');
+            }
+        }
+
+        function handleKeyDown(event) {
+            const speed = 10;
+
+            switch (event.key) {
+                case 'ArrowUp':
+                    y -= speed;
+                    break;
+                case 'ArrowDown':
+                    y += speed;
+                    break;
+                case 'ArrowLeft':
+                    x -= speed;
+                    break;
+                case 'ArrowRight':
+                    x += speed;
+                    break;
+            }
+
+            updatePosition();
+            checkCollision();
+        }
+
+        document.addEventListener('keydown', handleKeyDown);
+    });
+</script>
+</body>
+</html>
