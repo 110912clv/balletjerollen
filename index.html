@@ -1,99 +1,187 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Balletje naar finish met obstakels</title>
+<title>2D Spel</title>
 <style>
-    #game-container {
-        width: 600px; /* Aangepaste breedte van de speelkaart */
-        height: 600px; /* Aangepaste hoogte van de speelkaart */
-        position: relative;
-        border: 1px solid black;
-        overflow: hidden; /* Voorkomt dat de bal buiten de speelkaart beweegt */
+    body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
     }
-    .obstakel {
-        width: 50px;
-        height: 50px;
-        background-color: gray;
-        position: absolute;
-    }
-    #balletje {
-        width: 20px;
-        height: 20px;
-        background-color: red;
-        border-radius: 50%;
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
-    #finish {
-        width: 30px;
-        height: 30px;
-        background-color: green;
-        position: absolute;
-        bottom: 0;
-        right: 0;
+    canvas {
+        display: block;
+        margin: auto;
+        background-color: #f0f0f0;
     }
 </style>
 </head>
 <body>
-<div id="game-container">
-    <div class="obstakel" style="top: 100px; left: 150px;"></div>
-    <div class="obstakel" style="top: 200px; left: 50px;"></div>
-    <div id="balletje"></div>
-    <div id="finish"></div>
-</div>
-
+<canvas id="gameCanvas" width="800" height="600"></canvas>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const balletje = document.getElementById('balletje');
-        const finish = document.getElementById('finish');
-        const gameContainer = document.getElementById('game-container');
-        const obstakels = document.querySelectorAll('.obstakel');
+    // Initialisatie van canvas
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-        let x = 0;
-        let y = 0;
-        const ballSize = 20;
-        const containerWidth = gameContainer.clientWidth - ballSize;
-        const containerHeight = gameContainer.clientHeight - ballSize;
+    // Speler instellingen
+    const player = {
+        x: 50,
+        y: canvas.height / 2,
+        size: 20,
+        speed: 5
+    };
 
-        function updatePosition() {
-            // Begrens de bal binnen de speelkaart
-            x = Math.min(Math.max(x, 0), containerWidth);
-            y = Math.min(Math.max(y, 0), containerHeight);
-            balletje.style.transform = `translate(${x}px, ${y}px)`;
+    // Doel instellingen
+    const goal = {
+        x: 0,
+        y: 0,
+        size: 50
+    };
+
+    // Obstakel instellingen
+    const obstacles = [
+        { x: 0, y: 0, size: 50, speed: 2, direction: 1 },
+        { x: 0, y: 0, size: 50, speed: 2, direction: 1 }
+    ];
+
+    // Start het spel
+    reset();
+
+    // Tekenen van de speler
+    function drawPlayer() {
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Tekenen van de goal
+    function drawGoal() {
+        ctx.fillStyle = 'green';
+        ctx.fillRect(goal.x - goal.size / 2, goal.y - goal.size / 2, goal.size, goal.size);
+    }
+
+    // Tekenen van de obstakels
+    function drawObstacles() {
+        ctx.fillStyle = 'black';
+        obstacles.forEach(obstacle => {
+            ctx.fillRect(obstacle.x - obstacle.size / 2, obstacle.y - obstacle.size / 2, obstacle.size, obstacle.size);
+        });
+    }
+
+    // Spel loop
+    function gameLoop() {
+        // Wis canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Beweging van de speler
+        if (keys.ArrowUp && player.y > 0) {
+            player.y -= player.speed;
+        }
+        if (keys.ArrowDown && player.y < canvas.height) {
+            player.y += player.speed;
+        }
+        if (keys.ArrowLeft && player.x > 0) {
+            player.x -= player.speed;
+        }
+        if (keys.ArrowRight && player.x < canvas.width) {
+            player.x += player.speed;
         }
 
-        function checkCollision() {
-            // Rest van de code blijft ongewijzigd
-            // Voeg hier eventueel extra logica toe voor obstakels
-        }
-
-        function handleKeyDown(event) {
-            const speed = 10;
-
-            switch (event.key) {
-                case 'ArrowUp':
-                    y -= speed;
-                    break;
-                case 'ArrowDown':
-                    y += speed;
-                    break;
-                case 'ArrowLeft':
-                    x -= speed;
-                    break;
-                case 'ArrowRight':
-                    x += speed;
-                    break;
+        // Beweging van obstakels
+        obstacles.forEach(obstacle => {
+            if (obstacle.direction === 1) {
+                if (obstacle.x + obstacle.size / 2 < canvas.width) {
+                    obstacle.x += obstacle.speed;
+                } else {
+                    obstacle.direction = -1;
+                }
+            } else {
+                if (obstacle.x - obstacle.size / 2 > 0) {
+                    obstacle.x -= obstacle.speed;
+                } else {
+                    obstacle.direction = 1;
+                }
             }
 
-            updatePosition();
-            checkCollision();
+            if (obstacle.direction === 1) {
+                if (obstacle.y + obstacle.size / 2 < canvas.height) {
+                    obstacle.y += obstacle.speed;
+                } else {
+                    obstacle.direction = -1;
+                }
+            } else {
+                if (obstacle.y - obstacle.size / 2 > 0) {
+                    obstacle.y -= obstacle.speed;
+                } else {
+                    obstacle.direction = 1;
+                }
+            }
+        });
+
+        // Tekenen van speler, goal en obstakels
+        drawPlayer();
+        drawGoal();
+        drawObstacles();
+
+        // Controleer of de speler de goal heeft bereikt
+        if (player.x + player.size > goal.x - goal.size / 2 &&
+            player.x - player.size < goal.x + goal.size / 2 &&
+            player.y + player.size > goal.y - goal.size / 2 &&
+            player.y - player.size < goal.y + goal.size / 2) {
+            alert("Gewonnen!");
+            reset();
         }
 
-        document.addEventListener('keydown', handleKeyDown);
+        // Controleer of de speler een obstakel raakt
+        obstacles.forEach(obstacle => {
+            if (player.x + player.size > obstacle.x - obstacle.size / 2 &&
+                player.x - player.size < obstacle.x + obstacle.size / 2 &&
+                player.y + player.size > obstacle.y - obstacle.size / 2 &&
+                player.y - player.size < obstacle.y + obstacle.size / 2) {
+                alert("Game Over!");
+                reset();
+            }
+        });
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    // Herstart het spel
+    function reset() {
+        player.x = 50;
+        player.y = canvas.height / 2;
+
+        // Genereer willekeurige positie voor de goal
+        goal.x = Math.floor(Math.random() * (canvas.width - 100)) + 50;
+        goal.y = Math.floor(Math.random() * (canvas.height - 100)) + 50;
+
+        // Genereer willekeurige posities voor de obstakels
+        obstacles.forEach((obstacle, index) => {
+            obstacle.x = Math.floor(Math.random() * (canvas.width - 100)) + 50;
+            obstacle.y = Math.floor(Math.random() * (canvas.height - 100)) + 50;
+
+            // Zorg ervoor dat de eerste obstakel horizontaal beweegt en de tweede verticaal
+            if (index === 0) {
+                obstacle.direction = 1; // horizontaal
+            } else {
+                obstacle.direction = 2; // verticaal
+            }
+        });
+    }
+
+    // Toetsenbordbediening
+    const keys = {};
+    document.addEventListener('keydown', event => {
+        keys[event.key] = true;
     });
+    document.addEventListener('keyup', event => {
+        keys[event.key] = false;
+    });
+
+    // Start het spel
+    gameLoop();
 </script>
 </body>
 </html>
