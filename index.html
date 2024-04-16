@@ -42,7 +42,8 @@
     // Obstakel instellingen
     const obstacles = [
         { x: 0, y: 0, size: 50, speed: 2, direction: 1 },
-        { x: 0, y: 0, size: 50, speed: 2, direction: 1 }
+        { x: 0, y: 0, size: 50, speed: 2, direction: 1 },
+        { x: 0, y: 0, size: 30, speed: 3, direction: 1 } // Nieuw bewegend object
     ];
 
     // Start het spel
@@ -50,7 +51,7 @@
 
     // Tekenen van de speler
     function drawPlayer() {
-        ctx.fillStyle = 'red';
+        ctx.fillStyle = 'blue'; // Kleur veranderd naar blauw
         ctx.beginPath();
         ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2);
         ctx.fill();
